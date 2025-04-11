@@ -241,7 +241,7 @@ const Upload = () => {
 
               {/* Results Section */}
               <div id="results-section">
-                <ParseResult result={parseResult} isLoading={isProcessing} />
+                <ParseResult result={parseResult} fileName={selectedFile?.name} isLoading={isProcessing} />
               </div>
             </TabsContent>
             

@@ -7,13 +7,13 @@ import { Check, Copy, Download } from "lucide-react";
 
 interface ParseResultProps {
   result: Record<string, unknown> | null;
+  fileName?: string; // Add filename prop
   isLoading?: boolean;
 }
 
-const ParseResult = ({ result, isLoading = false }: ParseResultProps) => {
+const ParseResult = ({ result, fileName, isLoading = false }: ParseResultProps) => {
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState("json");
-
   const handleCopy = () => {
     if (!result) return;
     
@@ -26,27 +26,38 @@ const ParseResult = ({ result, isLoading = false }: ParseResultProps) => {
 
   const handleDownload = () => {
     if (!result) return;
-    
+
     const format = activeTab === "json" ? "json" : "csv";
+    const baseFileName = fileName ? fileName.replace(/\.[^/.]+$/, "") : "document_data"; // Get base name or default
     let content = "";
-    const filename = `document_data.${format}`;
-    
+    const downloadFilename = `${baseFileName}.${format}`; // Use base name for download
+
     if (format === "json") {
       content = JSON.stringify(result, null, 2);
     } else {
-      // Very simple CSV conversion for demo purposes
-      // In a real app, this would need to be more sophisticated
-      const headers = Object.keys(result).join(",");
-      const values = Object.values(result).join(",");
-      content = headers + "\n" + values;
+      // Generate CSV from lineItems if available
+      if (Array.isArray(result.lineItems) && result.lineItems.length > 0 && typeof result.lineItems[0] === 'object' && result.lineItems[0] !== null) {
+        const headers = Object.keys(result.lineItems[0]).join(",");
+        const rows = result.lineItems.map(item =>
+          Object.keys(result.lineItems[0]).map(key => {
+            const value = item[key] ?? "";
+            // Escape double quotes and wrap in double quotes
+            return `"${value.toString().replace(/"/g, '""')}"`;
+          }).join(",")
+        ).join("\n");
+        content = headers + "\n" + rows;
+      } else {
+        // Fallback if no lineItems or invalid format - maybe provide empty content or basic key-value?
+        content = ""; // Defaulting to empty CSV if no lineItems
+      }
     }
-    
+
     const blob = new Blob([content], { type: `text/${format}` });
     const url = URL.createObjectURL(blob);
-    
+
     const a = document.createElement("a");
     a.href = url;
-    a.download = filename;
+    a.download = downloadFilename; // Use the correct filename
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
