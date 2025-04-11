@@ -5,18 +5,17 @@ import { mockProcessDocument } from "./mockDocumentService";
 interface ProcessDocumentOptions {
   file: File;
   documentType?: string;
-  apiKey: string;
 }
 
 interface DocumentAiResponse {
   documentType: string;
-  result: any;
+  result: unknown;
 }
 
 export async function processDocumentWithAI({
   file,
   documentType = "GENERIC_DOCUMENT"
-}: Omit<ProcessDocumentOptions, "apiKey">): Promise<DocumentAiResponse> {
+}: ProcessDocumentOptions): Promise<DocumentAiResponse> {
   // # Reason: Now POSTs the PDF to the backend /api/parse endpoint instead of calling Google API directly.
   try {
     const formData = new FormData();
@@ -57,54 +56,108 @@ async function fileToBase64(file: File): Promise<string> {
 }
 
 // Helper to determine document type from AI response
-function determineDocumentType(aiResponse: any): string {
-  // This would be more sophisticated in a production environment
-  const text = aiResponse.document?.text?.toLowerCase() || "";
-  
-  if (text.includes("invoice") || text.includes("bill to")) {
-    return "invoice";
-  } else if (text.includes("order") && (text.includes("confirmation") || text.includes("receipt"))) {
-    return "order_confirmation";
-  } else if (text.includes("shipping") && text.includes("label")) {
-    return "shipping_label";
-  } else {
-    return "generic_document";
+function determineDocumentType(aiResponse: unknown): string {
+  // # Reason: Type guard for unknown input
+  if (
+    typeof aiResponse === "object" &&
+    aiResponse !== null &&
+    "document" in aiResponse &&
+    typeof (aiResponse as { document?: unknown }).document === "object" &&
+    (aiResponse as { document?: unknown }).document !== null &&
+    "text" in (aiResponse as { document?: Record<string, unknown> }).document
+  ) {
+    const text = String(
+      ((aiResponse as { document?: Record<string, unknown> }).document as Record<string, unknown>).text ?? ""
+    ).toLowerCase();
+
+    if (text.includes("invoice") || text.includes("bill to")) {
+      return "invoice";
+    } else if (text.includes("order") && (text.includes("confirmation") || text.includes("receipt"))) {
+      return "order_confirmation";
+    } else if (text.includes("shipping") && text.includes("label")) {
+      return "shipping_label";
+    }
   }
+  return "generic_document";
 }
 
 // Helper to extract structured data based on document type
-function extractStructuredData(aiResponse: any, documentType: string): any {
-  // Extract entities if available
-  const entities = aiResponse.document?.entities || [];
-  const structuredData: Record<string, any> = {
+function extractStructuredData(aiResponse: unknown, documentType: string): Record<string, unknown> {
+  // # Reason: Type guard for unknown input
+  let entities: unknown[] = [];
+  let formFields: unknown[] = [];
+  let rawText: unknown = undefined;
+  let confidenceScore: unknown = 1.0;
+
+  if (
+    typeof aiResponse === "object" &&
+    aiResponse !== null &&
+    "document" in aiResponse &&
+    typeof (aiResponse as { document?: unknown }).document === "object" &&
+    (aiResponse as { document?: unknown }).document !== null
+  ) {
+    const doc = (aiResponse as { document: Record<string, unknown> }).document;
+    if (Array.isArray(doc.entities)) entities = doc.entities;
+    if (Array.isArray(doc.formFields)) formFields = doc.formFields;
+    if ("text" in doc) rawText = doc.text;
+    const textChanges = (doc as Record<string, unknown>).textChanges;
+    if (
+      Array.isArray(textChanges) &&
+      textChanges.length > 0 &&
+      typeof textChanges[0] === "object" &&
+      textChanges[0] !== null &&
+      "confidence" in textChanges[0]
+    ) {
+      confidenceScore = (textChanges[0] as { confidence?: unknown }).confidence ?? 1.0;
+    }
+  }
+
+  const structuredData: Record<string, unknown> = {
     document_type: documentType,
   };
-  
+
   // Map entities to structured data
-  entities.forEach((entity: any) => {
-    if (entity.type && entity.mentionText) {
-      const key = entity.type.toLowerCase().replace(/\s+/g, '_');
-      const value = entity.mentionText;
+  entities.forEach((entity) => {
+    if (
+      typeof entity === "object" &&
+      entity !== null &&
+      "type" in entity &&
+      typeof (entity as { type?: unknown }).type === "string" &&
+      "mentionText" in entity
+    ) {
+      const key = ((entity as { type: string }).type).toLowerCase().replace(/\s+/g, '_');
+      const value = (entity as { mentionText: unknown }).mentionText;
       structuredData[key] = value;
     }
   });
-  
+
   // Extract form fields if available
-  const formFields = aiResponse.document?.formFields || [];
-  formFields.forEach((field: any) => {
-    if (field.fieldName && field.fieldValue && field.fieldValue.textAnchor) {
-      const key = field.fieldName.toLowerCase().replace(/\s+/g, '_');
-      const value = field.fieldValue.textAnchor.content || field.fieldValue.text;
+  formFields.forEach((field) => {
+    if (
+      typeof field === "object" &&
+      field !== null &&
+      "fieldName" in field &&
+      typeof (field as { fieldName?: unknown }).fieldName === "string" &&
+      "fieldValue" in field &&
+      typeof (field as { fieldValue?: unknown }).fieldValue === "object" &&
+      (field as { fieldValue?: unknown }).fieldValue !== null &&
+      "textAnchor" in (field as { fieldValue: Record<string, unknown> }).fieldValue
+    ) {
+      const key = ((field as { fieldName: string }).fieldName).toLowerCase().replace(/\s+/g, '_');
+      const value =
+        ((field as { fieldValue: { textAnchor?: { content?: unknown }; text?: unknown } }).fieldValue.textAnchor
+          ?.content) ||
+        (field as { fieldValue: { text?: unknown } }).fieldValue.text;
       structuredData[key] = value;
     }
   });
-  
+
   // Add page text for completeness
-  structuredData.rawText = aiResponse.document?.text;
-  
+  structuredData.rawText = rawText;
+
   // Add additional metadata
   structuredData.processed_at = new Date().toISOString();
-  structuredData.confidence_score = aiResponse.document?.textChanges?.[0]?.confidence || 1.0;
-  
+  structuredData.confidence_score = confidenceScore;
+
   return structuredData;
 }

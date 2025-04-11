@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Check, Copy, Download } from "lucide-react";
 
 interface ParseResultProps {
-  result: Record<string, any> | null;
+  result: Record<string, unknown> | null;
   isLoading?: boolean;
 }
 
@@ -29,7 +29,7 @@ const ParseResult = ({ result, isLoading = false }: ParseResultProps) => {
     
     const format = activeTab === "json" ? "json" : "csv";
     let content = "";
-    let filename = `document_data.${format}`;
+    const filename = `document_data.${format}`;
     
     if (format === "json") {
       content = JSON.stringify(result, null, 2);
@@ -120,34 +120,48 @@ const ParseResult = ({ result, isLoading = false }: ParseResultProps) => {
           </TabsContent>
           
           <TabsContent value="table" className="mt-0">
-            <div className="rounded-md border overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50">
-                  <tr className="border-b">
-                    <th className="text-left p-2 font-medium">Field</th>
-                    <th className="text-left p-2 font-medium">Value</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.entries(result).map(([key, value]) => (
-                    <tr key={key} className="border-b last:border-0">
-                      <td className="p-2 font-medium">{key}</td>
-                      <td className="p-2">
-                        {typeof value === 'object' ? JSON.stringify(value) : String(value)}
-                      </td>
+            {/* Table view for lineItems */}
+            {Array.isArray(result.lineItems) && result.lineItems.length > 0 ? (
+              <div className="rounded-md border overflow-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/50">
+                    <tr className="border-b">
+                      {Object.keys(result.lineItems[0]).map((header) => (
+                        <th key={header} className="text-left p-2 font-medium">{header}</th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {result.lineItems.map((item, idx) => (
+                      <tr key={idx} className="border-b last:border-0">
+                        {Object.keys(result.lineItems[0]).map((header) => (
+                          <td key={header} className="p-2">
+                            {item[header] ?? ""}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-muted-foreground">No line items found.</div>
+            )}
           </TabsContent>
           
           <TabsContent value="csv" className="mt-0">
-            <pre className="bg-muted/50 p-4 rounded-md overflow-auto max-h-[400px] text-xs md:text-sm">
-              {Object.keys(result).join(",")}
-              <br />
-              {Object.values(result).join(",")}
-            </pre>
+            {/* CSV view for lineItems */}
+            {Array.isArray(result.lineItems) && result.lineItems.length > 0 ? (
+              <pre className="bg-muted/50 p-4 rounded-md overflow-auto max-h-[400px] text-xs md:text-sm">
+                {Object.keys(result.lineItems[0]).join(",")}
+                {"\n"}
+                {result.lineItems.map(item =>
+                  Object.keys(result.lineItems[0]).map(key => `"${(item[key] ?? "").toString().replace(/"/g, '""')}"`).join(",")
+                ).join("\n")}
+              </pre>
+            ) : (
+              <div className="text-muted-foreground">No line items found.</div>
+            )}
           </TabsContent>
         </Tabs>
       </CardContent>

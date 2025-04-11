@@ -8,7 +8,6 @@ import FileUploader from "@/components/upload/FileUploader";
 import PdfPreview from "@/components/upload/PdfPreview";
 import ParseResult from "@/components/parsing/ParseResult";
 import DocumentHistory from "@/components/parsing/DocumentHistory";
-import ApiKeyForm from "@/components/settings/ApiKeyForm";
 import { processDocumentWithAI } from "@/services/documentAiService";
 import { FileText, FileUp, Sparkles, History, Settings, AlertTriangle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,16 +18,15 @@ interface DocumentRecord {
   fileName: string;
   documentType: string;
   parseDate: string;
-  result: any;
+  result: unknown;
 }
 
 const Upload = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [parseResult, setParseResult] = useState<Record<string, any> | null>(null);
+  const [parseResult, setParseResult] = useState<Record<string, unknown> | null>(null);
   const [documentHistory, setDocumentHistory] = useState<DocumentRecord[]>([]);
   const [activeTab, setActiveTab] = useState("upload");
-  const [googleApiKey, setGoogleApiKey] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
   useEffect(() => {
@@ -42,11 +40,6 @@ const Upload = () => {
       }
     }
     
-    // Load API key from localStorage
-    const savedApiKey = localStorage.getItem("googleApiKey");
-    if (savedApiKey) {
-      setGoogleApiKey(savedApiKey);
-    }
   }, []);
 
   const handleFileUpload = (file: File) => {
@@ -65,15 +58,7 @@ const Upload = () => {
       return;
     }
     
-    if (!googleApiKey) {
-      toast({
-        title: "OAuth Token Required",
-        description: "Please provide your Google Document AI OAuth token in the Settings tab.",
-        variant: "destructive",
-      });
-      setActiveTab("settings");
-      return;
-    }
+    // No longer require or check for googleApiKey
 
     setIsProcessing(true);
     setParseResult(null);
@@ -82,11 +67,19 @@ const Upload = () => {
     try {
       // Process the document with Google Document AI
       const result = await processDocumentWithAI({
-        file: selectedFile,
-        apiKey: googleApiKey
+        file: selectedFile
       });
       
-      setParseResult(result.result);
+      if (
+        typeof result.result === "object" &&
+        result.result !== null &&
+        !Array.isArray(result.result)
+      ) {
+        setParseResult(result.result as Record<string, unknown>);
+      } else {
+        setParseResult(null);
+        setErrorMessage("Invalid document result format.");
+      }
       
       // Add to document history
       const newDocument: DocumentRecord = {
@@ -97,9 +90,10 @@ const Upload = () => {
         result: result.result
       };
       
-      const updatedHistory = [newDocument, ...documentHistory];
+      // Limit history to 10 most recent documents
+      const updatedHistory = [newDocument, ...documentHistory].slice(0, 10);
       setDocumentHistory(updatedHistory);
-      
+
       // Save to localStorage
       localStorage.setItem("documentHistory", JSON.stringify(updatedHistory));
 
@@ -127,7 +121,16 @@ const Upload = () => {
   };
   
   const handleViewDocument = (documentRecord: DocumentRecord) => {
-    setParseResult(documentRecord.result);
+    if (
+      typeof documentRecord.result === "object" &&
+      documentRecord.result !== null &&
+      !Array.isArray(documentRecord.result)
+    ) {
+      setParseResult(documentRecord.result as Record<string, unknown>);
+    } else {
+      setParseResult(null);
+      setErrorMessage("Invalid document result format.");
+    }
     setActiveTab("upload");
     
     // Scroll to the results section
@@ -150,11 +153,7 @@ const Upload = () => {
     });
   };
   
-  const handleSaveApiKey = (apiKey: string) => {
-    setGoogleApiKey(apiKey);
-    localStorage.setItem("googleApiKey", apiKey);
-    setErrorMessage(null); // Clear any previous errors when updating the key
-  };
+  // Removed handleSaveApiKey and related logic (no longer needed)
 
   return (
     <Layout>
@@ -175,10 +174,7 @@ const Upload = () => {
                 <History className="h-4 w-4" />
                 Document History
               </TabsTrigger>
-              <TabsTrigger value="settings" className="flex items-center gap-2">
-                <Settings className="h-4 w-4" />
-                Settings
-              </TabsTrigger>
+              {/* Settings tab removed */}
             </TabsList>
             
             <TabsContent value="upload">
@@ -187,11 +183,6 @@ const Upload = () => {
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
                     {errorMessage}
-                    {errorMessage.includes("ACCESS_TOKEN_TYPE_UNSUPPORTED") && (
-                      <div className="mt-2">
-                        You need to use a valid OAuth 2.0 token, not an API key or Client ID. Please check the Settings tab for instructions.
-                      </div>
-                    )}
                   </AlertDescription>
                 </Alert>
               )}
@@ -262,14 +253,7 @@ const Upload = () => {
               />
             </TabsContent>
             
-            <TabsContent value="settings">
-              <div className="max-w-lg mx-auto">
-                <ApiKeyForm 
-                  onSaveApiKey={handleSaveApiKey}
-                  initialApiKey={googleApiKey}
-                />
-              </div>
-            </TabsContent>
+            {/* Settings tab content removed */}
           </Tabs>
         </div>
       </div>

@@ -166,42 +166,37 @@ job_id: The job ID returned from the parse request`}
                     <TabsContent value="javascript" className="mt-0">
                       <pre className="bg-muted/50 p-3 rounded-md text-sm">
 {`// Upload and parse a document using fetch
-async function parseDocument(file, apiKey) {
+// Note: The frontend no longer requires a user-supplied OAuth token or API key.
+// Authentication is handled server-side. For direct API usage, see below.
+
+async function parseDocument(file) {
   const formData = new FormData();
   formData.append('file', file);
-  
+
   const response = await fetch('https://api.docuparse.ai/v1/documents/parse', {
     method: 'POST',
-    headers: {
-      'Authorization': \`Bearer \${apiKey}\`,
-    },
     body: formData
   });
-  
+
   const data = await response.json();
-  
+
   // Check job status
   const jobId = data.job_id;
-  
+
   // Poll for results
   let result;
   while (true) {
-    const resultResponse = await fetch(\`https://api.docuparse.ai/v1/documents/result/\${jobId}\`, {
-      headers: {
-        'Authorization': \`Bearer \${apiKey}\`,
-      }
-    });
-    
+    const resultResponse = await fetch(\`https://api.docuparse.ai/v1/documents/result/\${jobId}\`);
     result = await resultResponse.json();
-    
+
     if (result.status === 'completed' || result.status === 'failed') {
       break;
     }
-    
+
     // Wait before polling again
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
-  
+
   return result;
 }`}
                       </pre>
