@@ -1,5 +1,7 @@
 # DocuParse
 
+![DocuParse Logo](public/images/example-image.svg)
+
 ## Project Info
 
 DocuParse is a document parsing application that uses AI to extract structured data from PDFs and other documents. It's built with Node.js, Express, and React, and it leverages Google's Document AI for the AI processing. The frontend is built with Vite and React, and it uses shadcn-ui for components and Tailwind CSS for styling. The backend is built with Node.js and Express, and it handles file uploads and API requests. The project is structured to allow for easy development and deployment.
@@ -98,3 +100,16 @@ This will open two new terminal windows, one for the backend and one for the fro
 - All config files for the backend (Express, Node.js, etc.) are in backend/.
 - Manage backend and frontend dependencies separately.
 - Use start-all.bat in the root to run both servers for development.
+
+## Screenshots
+
+### Marketing Page
+![Dashboard Screenshot](public/images/Screenshot_0.jpg)
+
+### Document Processing
+![Processing Screenshot](public/images/Screenshot_1.jpg)
+![API Docs Screenshot](public/images/Screenshot_2.jpg)
+![API Docs Screenshot](public/images/Screenshot_3.jpg)
+
+### API Documentation
+![API Docs Screenshot](public/images/Screenshot_4.jpg)
