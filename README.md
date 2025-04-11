@@ -1,23 +1,31 @@
-# DocuParse Monorepo
+# DocuParse
 
 ## Project Info
 
-**URL**: https://lovable.dev/projects/5e5ef42d-e549-46d9-a62c-8aa192b8c720
+DocuParse is a document parsing application that uses AI to extract structured data from PDFs and other documents. It's built with Node.js, Express, and React, and it leverages Google's Document AI for the AI processing. The frontend is built with Vite and React, and it uses shadcn-ui for components and Tailwind CSS for styling. The backend is built with Node.js and Express, and it handles file uploads and API requests. The project is structured to allow for easy development and deployment.
 
 ## Project Structure
 
 ```
 Workspace-DocuParse/
 │
-├── backend/         # Node.js + Express backend (API, Google Doc AI, etc.)
+├── backend/             # Node.js + Express backend (API, Google Doc AI, etc.)
 │   ├── index.js
-│   ├── routes/
-│   ├── services/
+│   ├── routes/          # Express routes
+│   ├── services/        # Backend services
+│   ├── node_modules/
 │   ├── .env
 │   └── package.json
 │
-├── frontend/        # Vite + React frontend
+├── frontend/            # Vite + React frontend
 │   ├── src/
+│   │   ├── components/  # React components
+│   │   ├── pages/       # React pages
+│   │   ├── services/    # Frontend services
+│   │   ├── lib/         # Utility libraries
+│   │   ├── hooks/       # Custom React hooks
+│   │   ├── index.css    # Tailwind CSS entry point
+│   │   └── main.tsx     # Main entry point
 │   ├── index.html
 │   ├── vite.config.ts
 │   ├── tailwind.config.ts
@@ -26,9 +34,7 @@ Workspace-DocuParse/
 │   ├── package.json
 │   └── node_modules/
 │
-├── docs/            # Documentation and planning
-├── public/          # Shared/static assets (if any)
-├── testdata/        # Test files (if any)
+├── public/          # Shared/static assets
 ├── start-all.bat    # Script to start both backend and frontend servers
 ├── .gitignore
 └── README.md
@@ -86,12 +92,9 @@ This will open two new terminal windows, one for the backend and one for the fro
 - Tailwind CSS
 - Node.js + Express
 
-## Deployment
-
-See [Lovable Project](https://lovable.dev/projects/5e5ef42d-e549-46d9-a62c-8aa192b8c720) for deployment and publishing instructions.
-
 ## Notes
 
-- All config files for the frontend (Vite, Tailwind, TypeScript, etc.) are now in frontend/.
+- All config files for the frontend (Vite, Tailwind, TypeScript, etc.) are in frontend/.
+- All config files for the backend (Express, Node.js, etc.) are in backend/.
 - Manage backend and frontend dependencies separately.
 - Use start-all.bat in the root to run both servers for development.
