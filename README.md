@@ -1,6 +1,6 @@
 # DocuParse
 
-![DocuParse Logo](public/images/example-image.svg)
+![DocuParse Logo](public/images/logo.jpg)
 
 ## Project Info
 
