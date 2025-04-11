@@ -27,3 +27,8 @@ dist-ssr
 # Custom ignores
 .qodo
 .roo
+docs
+testdata
+google-credentials.json
+.roomodes
+.env

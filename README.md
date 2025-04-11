@@ -1,73 +1,97 @@
-# Welcome to your Lovable project
+# DocuParse Monorepo
 
-## Project info
+## Project Info
 
 **URL**: https://lovable.dev/projects/5e5ef42d-e549-46d9-a62c-8aa192b8c720
 
-## How can I edit this code?
+## Project Structure
 
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/5e5ef42d-e549-46d9-a62c-8aa192b8c720) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+Workspace-DocuParse/
+│
+├── backend/         # Node.js + Express backend (API, Google Doc AI, etc.)
+│   ├── index.js
+│   ├── routes/
+│   ├── services/
+│   ├── .env
+│   └── package.json
+│
+├── frontend/        # Vite + React frontend
+│   ├── src/
+│   ├── index.html
+│   ├── vite.config.ts
+│   ├── tailwind.config.ts
+│   ├── postcss.config.js
+│   ├── tsconfig*.json
+│   ├── package.json
+│   └── node_modules/
+│
+├── docs/            # Documentation and planning
+├── public/          # Shared/static assets (if any)
+├── testdata/        # Test files (if any)
+├── start-all.bat    # Script to start both backend and frontend servers
+├── .gitignore
+└── README.md
 ```
 
-**Edit a file directly in GitHub**
+## Getting Started
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### 1. Install Dependencies
 
-**Use GitHub Codespaces**
+Install backend and frontend dependencies separately:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```sh
+# Backend dependencies
+cd backend
+npm install
 
-## What technologies are used for this project?
+# Frontend dependencies
+cd ../frontend
+npm install
+```
 
-This project is built with:
+### 2. Start Development Servers
+
+You can start backend and frontend independently, or both together using the batch script.
+
+**Start backend only:**
+```sh
+cd backend
+npm start
+```
+
+**Start frontend only:**
+```sh
+cd frontend
+npm start
+```
+
+**Start both backend and frontend together (from project root):**
+```sh
+start-all.bat
+```
+This will open two new terminal windows, one for the backend and one for the frontend.
+
+### 3. Access the App
+
+- Frontend: http://localhost:8080 (default Vite port)
+- Backend API: http://localhost:3001 (default Express port)
+
+## Technologies Used
 
 - Vite
 - TypeScript
 - React
 - shadcn-ui
 - Tailwind CSS
+- Node.js + Express
 
-## How can I deploy this project?
+## Deployment
 
-Simply open [Lovable](https://lovable.dev/projects/5e5ef42d-e549-46d9-a62c-8aa192b8c720) and click on Share -> Publish.
+See [Lovable Project](https://lovable.dev/projects/5e5ef42d-e549-46d9-a62c-8aa192b8c720) for deployment and publishing instructions.
 
-## Can I connect a custom domain to my Lovable project?
+## Notes
 
-Yes it is!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- All config files for the frontend (Vite, Tailwind, TypeScript, etc.) are now in frontend/.
+- Manage backend and frontend dependencies separately.
+- Use start-all.bat in the root to run both servers for development.
